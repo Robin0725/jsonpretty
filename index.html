@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSONPretty — Free Online JSON Formatter, Validator & Minifier. No Upload, 100% Private.</title>
+<meta name="description" content="Format, validate and minify JSON online for free. Clear error messages with line &amp; column, syntax highlighting, download — all in your browser, no upload.">
+<style>
+  :root { --bg:#f5f7fb; --panel:#ffffff; --border:#dee4f0; --text:#1a2235; --muted:#69748e; --accent:#7c3aed; --accent-dark:#6d28d9; --green:#16a34a; --red:#dc2626; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
+  header { background:var(--panel); border-bottom:1px solid var(--border); padding:14px 24px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:20; }
+  .logo { font-weight:800; font-size:19px; }
+  .logo span { color:var(--accent); }
+  .pill { background:#f3eeff; border:1px solid #ddd0fb; color:var(--accent-dark); padding:7px 14px; border-radius:99px; font-size:13px; font-weight:600; }
+  .hero { text-align:center; padding:38px 20px 4px; }
+  .hero h1 { font-size:clamp(25px,4.2vw,38px); letter-spacing:-.7px; }
+  .hero h1 em { font-style:normal; color:var(--accent); }
+  .hero p { color:var(--muted); max-width:620px; margin:12px auto 0; font-size:16px; line-height:1.65; }
+  .wrap { max-width:1000px; margin:26px auto 60px; padding:0 18px; }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:18px; }
+  .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  .toolbar .spacer { flex:1; }
+  select { background:#f6f8fc; border:1px solid var(--border); border-radius:9px; padding:9px 10px; font-size:14px; color:var(--text); font-family:inherit; cursor:pointer; }
+  select:focus { outline:none; border-color:var(--accent); }
+  .btn { background:#f1f3fa; border:1px solid var(--border); color:var(--text); padding:10px 16px; border-radius:9px; font-size:14px; font-weight:600; cursor:pointer; transition:.15s; }
+  .btn:hover { background:#e9ecf6; }
+  .btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .btn.primary:hover { background:var(--accent-dark); }
+  .panes { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:860px){ .panes { grid-template-columns:1fr; } }
+  .pane h3 { font-size:13px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.5px; margin-bottom:7px; display:flex; justify-content:space-between; align-items:baseline; }
+  .pane h3 .lnk { color:var(--accent); cursor:pointer; text-transform:none; letter-spacing:0; font-weight:600; font-size:13px; }
+  .pane h3 .lnk:hover { text-decoration:underline; }
+  textarea { width:100%; height:420px; resize:vertical; background:#f6f8fc; border:1px solid var(--border); border-radius:12px; padding:12px; font:12.5px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color:var(--text); }
+  textarea:focus { outline:none; border-color:var(--accent); }
+  #out { width:100%; height:420px; overflow:auto; background:#f6f8fc; border:1px solid var(--border); border-radius:12px; padding:12px; font:12.5px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space:pre; color:var(--text); resize:vertical; }
+  #out .hint { color:var(--muted); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; white-space:normal; }
+  .jk { color:#7c3aed; } .js { color:#16803d; } .jn { color:#1d4ed8; } .jb { color:#b45309; font-weight:600; }
+  #msg { display:none; margin-top:14px; border-radius:12px; padding:13px 15px; font-size:14px; line-height:1.6; }
+  #msg.ok { display:block; background:#ecfdf3; border:1px solid #b7e9c8; color:#136a31; }
+  #msg.bad { display:block; background:#fef2f2; border:1px solid #f3c4c4; color:#991b1b; }
+  #msg pre { margin-top:8px; background:#fff; border:1px solid #f3c4c4; border-radius:8px; padding:10px 12px; font:12.5px/1.5 ui-monospace, Menlo, monospace; overflow:auto; color:#1a2235; }
+  #msg pre mark { background:#fde3e3; color:#991b1b; font-weight:700; border-radius:3px; padding:0 1px; }
+  .statline { color:var(--muted); font-size:13px; margin-top:10px; min-height:18px; }
+  .toast { position:fixed; left:50%; transform:translateX(-50%); bottom:64px; background:#1a2235; color:#fff; padding:10px 18px; border-radius:10px; font-size:14px; opacity:0; pointer-events:none; transition:.25s; z-index:50; }
+  .toast.show { opacity:1; }
+  .content { max-width:760px; margin:0 auto 40px; padding:0 18px; }
+  .content h2 { font-size:22px; margin:34px 0 14px; }
+  details { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin-bottom:10px; }
+  summary { font-weight:600; cursor:pointer; font-size:15px; }
+  details p { color:var(--muted); font-size:14px; line-height:1.65; margin-top:9px; }
+  footer { border-top:1px solid var(--border); background:var(--panel); padding:28px 20px 90px; }
+  footer .inner { max-width:760px; margin:0 auto; }
+  footer h4 { font-size:14px; margin-bottom:10px; }
+  footer .links { display:flex; flex-wrap:wrap; gap:8px 18px; margin-bottom:16px; }
+  footer .links a { color:var(--accent-dark); font-size:13.5px; text-decoration:none; }
+  footer .links a:hover { text-decoration:underline; }
+  footer .fine { color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">JSON<span>Pretty</span></div>
+  <span class="pill">100% in your browser</span>
+</header>
+
+<div class="hero">
+  <h1>Format, Validate &amp; Minify <em>JSON</em> Online</h1>
+  <p>Paste messy JSON, get clean, syntax-highlighted output in one click. Invalid JSON? We point at the exact line and column and explain the problem in plain English. Nothing leaves your device.</p>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <div class="toolbar">
+      <select id="indent" aria-label="Indentation">
+        <option value="2" selected>2 spaces</option>
+        <option value="4">4 spaces</option>
+        <option value="t">Tab</option>
+      </select>
+      <button class="btn primary" id="bFormat">Format</button>
+      <button class="btn" id="bMinify">Minify</button>
+      <button class="btn" id="bValidate">Validate</button>
+      <span class="spacer"></span>
+      <button class="btn" id="bCopy">Copy</button>
+      <button class="btn" id="bDownload">Download .json</button>
+    </div>
+    <div class="panes">
+      <div class="pane">
+        <h3>Input <span class="lnk" id="bSample">Load sample</span></h3>
+        <textarea id="in" spellcheck="false" placeholder='Paste your JSON here, e.g. {"name":"Ada","tags":["math","code"],"active":true}'></textarea>
+      </div>
+      <div class="pane">
+        <h3>Output</h3>
+        <div id="out"><span class="hint">Formatted result appears here. Large inputs (up to several MB) are fine — processing only runs when you click a button.</span></div>
+      </div>
+    </div>
+    <div id="msg" role="alert"></div>
+    <div class="statline" id="stat"></div>
+  </div>
+</div>
+
+<div class="content">
+  <h2>Why a browser-only JSON formatter?</h2>
+  <p style="color:var(--muted);font-size:15px;line-height:1.7">JSON often contains API keys, customer records, or internal config. Pasting it into a tool that sends it to a server is a real leak risk. JSONPretty parses, formats, validates and minifies entirely with JavaScript running on your machine — open your network tab and verify: zero requests.</p>
+  <h2>FAQ</h2>
+  <details><summary>Is it safe to format JSON with sensitive data online?</summary><p>With this tool, yes. Your JSON never leaves your browser — there is no server, no upload, no analytics on your content. You can even load the page once and use it offline.</p></details>
+  <details><summary>How do I find the error in invalid JSON?</summary><p>Click Validate (or Format). If parsing fails, we show the line and column of the first error, display that line with the problem spot highlighted, and translate the cryptic parser message into a plain-English hint, like &quot;trailing comma before }&quot;.</p></details>
+  <details><summary>What is the difference between Format and Minify?</summary><p>Format (also called beautify or pretty-print) adds indentation and line breaks so humans can read the JSON. Minify removes all unnecessary whitespace to make the file as small as possible for production use.</p></details>
+  <details><summary>Can it handle large JSON files?</summary><p>Yes. Files of a few megabytes format in well under a second because processing only happens when you click a button — there is no laggy live preview. Very large outputs skip syntax coloring to stay fast.</p></details>
+  <details><summary>Does JSON allow comments or trailing commas?</summary><p>No. Standard JSON (RFC 8259) forbids comments, trailing commas, and single quotes. Those are the three most common reasons valid-looking JSON fails to parse — this validator flags each of them with a specific hint.</p></details>
+</div>
+
+<footer>
+  <div class="inner">
+    <h4>More free tools</h4>
+    <div class="links">
+      <a href="https://robin0725.github.io/subkit/" target="_blank">SubKit — fix subtitle timing</a>
+      <a href="https://robin0725.github.io/foreverqr/" target="_blank">ForeverQR — permanent QR codes</a>
+      <a href="https://robin0725.github.io/fillsign/" target="_blank">FillSign — fill &amp; sign PDFs</a>
+      <a href="https://robin0725.github.io/shotgloss/" target="_blank">ShotGloss — polish screenshots</a>
+      <a href="https://robin0725.github.io/diffpeek/" target="_blank">DiffPeek — compare two texts</a>
+      <a href="https://robin0725.github.io/wordcounta/" target="_blank">WordCounta — word counter</a>
+      <a href="https://robin0725.github.io/passforge/" target="_blank">PassForge — password generator</a>
+      <a href="https://robin0725.github.io/imageshrink/" target="_blank">ImageShrink — compress images</a>
+      <a href="https://robin0725.github.io/unitswap/" target="_blank">UnitSwap — unit converter</a>
+    </div>
+    <div class="fine">&copy; 2026 · Runs entirely in your browser. Your files never leave your device.</div>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function track(name, data) { if (window.PFB) window.PFB.action(name, data); }
+  var inEl = $('in'), outEl = $('out'), msgEl = $('msg'), statEl = $('stat');
+  var lastOutput = '';
+
+  function toast(t) {
+    var el = $('toast');
+    el.textContent = t;
+    el.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { el.classList.remove('show'); }, 1800);
+  }
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  function highlight(s) {
+    return esc(s).replace(
+      /("(?:\\.|[^"\\])*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false|null)\b/g,
+      function (m, str, colon, num, kw) {
+        if (str) return '<span class="' + (colon ? 'jk' : 'js') + '">' + str + '</span>' + (colon || '');
+        if (num) return '<span class="jn">' + num + '</span>';
+        return '<span class="jb">' + kw + '</span>';
+      });
+  }
+
+  function setOutput(text) {
+    lastOutput = text;
+    if (text.length > 400000) {
+      outEl.textContent = text; /* skip coloring on huge output to stay fast */
+    } else {
+      outEl.innerHTML = highlight(text);
+    }
+  }
+
+  function locate(msg, src) {
+    var m = msg.match(/line (\d+) column (\d+)/i);
+    if (m) return { line: +m[1], col: +m[2] };
+    m = msg.match(/position (\d+)/i);
+    if (m) {
+      var p = Math.min(+m[1], src.length);
+      var pre = src.slice(0, p).split('\n');
+      return { line: pre.length, col: pre[pre.length - 1].length + 1 };
+    }
+    return null;
+  }
+
+  function prevSignificant(src, line, col) {
+    var lines = src.split('\n');
+    var i = line - 1, j = col - 2;
+    while (i >= 0) {
+      var ln = lines[i];
+      if (j < 0) j = (--i >= 0) ? lines[i].length - 1 : -1;
+      while (j >= 0 && /\s/.test(ln[j])) j--;
+      if (i >= 0 && j >= 0) return lines[i][j];
+      if (i >= 0) { j = -1; continue; }
+    }
+    return '';
+  }
+
+  function friendly(msg, src, loc) {
+    if (/end of (JSON )?input|end of data|unterminated/i.test(msg))
+      return 'The JSON ends too early — a closing brace }, bracket ], or a closing quote is probably missing.';
+    if (!loc) return 'The JSON could not be parsed. Check quotes, commas and brackets near the start of the document.';
+    var lines = src.split('\n');
+    var ch = (lines[loc.line - 1] || '')[loc.col - 1] || '';
+    var prev = prevSignificant(src, loc.line, loc.col);
+    if ((ch === '}' || ch === ']') && prev === ',')
+      return 'There is a trailing comma right before this ' + ch + ' — JSON does not allow a comma after the last item.';
+    if (ch === "'")
+      return "JSON requires double quotes (\") — single quotes (') are not allowed for strings or keys.";
+    if (ch === '/' )
+      return 'Comments (// or /* */) are not allowed in standard JSON.';
+    if (/[A-Za-z_$]/.test(ch) && (prev === '{' || prev === ','))
+      return 'Property names must be wrapped in double quotes, e.g. "name": ... — an unquoted key was found here.';
+    if (ch === '{' || ch === '[' || ch === '"' || /[0-9-]/.test(ch)) {
+      if (prev === '"' || prev === '}' || prev === ']' || /[0-9a-zA-Z]/.test(prev))
+        return 'A comma is probably missing between two values right before this point.';
+    }
+    return 'Unexpected character ' + (ch ? '"' + ch + '"' : '') + ' here. Check for missing commas, quotes or brackets just before this spot.';
+  }
+
+  function showError(e, src) {
+    var loc = locate(String(e.message || e), src);
+    var html = '<b>Invalid JSON.</b> ' + esc(friendly(String(e.message || e), src, loc));
+    if (loc) {
+      var lines = src.split('\n');
+      var raw = lines[loc.line - 1] || '';
+      var c = Math.max(0, loc.col - 1);
+      var view = raw.length > 160 ? raw.slice(Math.max(0, c - 60), c + 100) : raw;
+      var off = raw.length > 160 ? c - Math.max(0, c - 60) : c;
+      var lineHtml = esc(view.slice(0, off)) + '<mark>' + esc(view.charAt(off) || ' ') + '</mark>' + esc(view.slice(off + 1));
+      html = '<b>Invalid JSON at line ' + loc.line + ', column ' + loc.col + '.</b> ' +
+        esc(friendly(String(e.message || e), src, loc)) +
+        '<pre>' + loc.line + ' | ' + lineHtml + '\n' +
+        Array(String(loc.line).length + 4 + off).join(' ') + '^</pre>';
+    }
+    msgEl.className = 'bad';
+    msgEl.innerHTML = html;
+    statEl.textContent = '';
+    track('error_shown', { line: loc ? loc.line : 0 });
+  }
+
+  function clearMsg() { msgEl.className = ''; msgEl.innerHTML = ''; }
+
+  function getSource() {
+    var s = inEl.value;
+    if (!s.trim()) { toast('Paste some JSON first'); return null; }
+    return s;
+  }
+
+  function run(mode) {
+    var src = getSource();
+    if (src === null) return;
+    clearMsg();
+    var t0 = performance.now();
+    var data;
+    try { data = JSON.parse(src); }
+    catch (e) { showError(e, src); return; }
+    var kb = Math.round(src.length / 1024 * 10) / 10;
+    if (mode === 'validate') {
+      msgEl.className = 'ok';
+      msgEl.innerHTML = '<b>Valid JSON.</b> ' + kb + ' KB parsed without errors.';
+      statEl.textContent = '';
+      return;
+    }
+    var out;
+    if (mode === 'minify') {
+      out = JSON.stringify(data);
+      track('minify_done');
+    } else {
+      var iv = $('indent').value;
+      out = JSON.stringify(data, null, iv === 't' ? '\t' : +iv);
+      track('format_done', { kb: kb });
+    }
+    setOutput(out);
+    var ms = Math.round(performance.now() - t0);
+    statEl.textContent = (mode === 'minify' ? 'Minified' : 'Formatted') + ' in ' + ms + ' ms · output ' +
+      (Math.round(out.length / 1024 * 10) / 10) + ' KB · ' + (out.split('\n').length) + ' line' + (out.indexOf('\n') < 0 ? '' : 's');
+  }
+
+  $('bFormat').onclick = function () { run('format'); };
+  $('bMinify').onclick = function () { run('minify'); };
+  $('bValidate').onclick = function () { run('validate'); };
+
+  $('bCopy').onclick = function () {
+    if (!lastOutput) { toast('Nothing to copy yet — click Format first'); return; }
+    navigator.clipboard.writeText(lastOutput).then(function () {
+      toast('Copied to clipboard');
+      track('copy');
+    }, function () { toast('Copy failed — select the output manually'); });
+  };
+
+  $('bDownload').onclick = function () {
+    if (!lastOutput) { toast('Nothing to download yet — click Format first'); return; }
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([lastOutput], { type: 'application/json' }));
+    a.download = 'data.json';
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  };
+
+  $('bSample').onclick = function () {
+    inEl.value = '{"product":"JSONPretty","version":2,"free":true,"limits":null,"features":["format","minify","validate"],"score":{"speed":9.8,"privacy":10}}';
+    run('format');
+  };
+})();
+</script>
+
+<script>
+/* PulseFB v1 — embedded friction & feedback tracker. No backend, no cookies, privacy-friendly.
+   Inline this entire script at the end of <body>, replacing Robin0725/jsonpretty with "Robin0725/<repo-name>".
+   Key features:
+   - rage-click detection (3+ clicks in same spot within 800ms = user is stuck there)
+   - dead-click detection (click on non-interactive area that changed nothing)
+   - JS error capture
+   - key-action funnel via PFB.action('name', {...})
+   - events kept in localStorage ring buffer (last 600)
+   - rage click -> gentle nudge bar -> prefilled GitHub issue WITH auto-diagnostics attached
+   - floating "Feedback" button -> same prefilled issue
+   - owner dashboard: open page with ?debug=1 to see per-element click counts, rage hotspots, funnel
+*/
+(function () {
+  var REPO = 'Robin0725/jsonpretty';
+  var KEY = 'pfb_v1';
+  var MAX = 600;
+  var buf = [];
+  try { buf = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { buf = []; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(buf.slice(-MAX))); } catch (e) {} }
+  function log(type, data) {
+    var ev = { t: Date.now(), type: type };
+    if (data) for (var k in data) ev[k] = data[k];
+    buf.push(ev); save();
+  }
+  function sel(el) {
+    if (!el || el === document || el === document.documentElement) return 'page';
+    var s = (el.tagName || '?').toLowerCase();
+    if (el.id) return s + '#' + el.id;
+    if (el.className && typeof el.className === 'string' && el.className.trim())
+      s += '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.');
+    var txt = (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 20);
+    return txt ? s + '"' + txt + '"' : s;
+  }
+
+  log('pageview', { w: innerWidth, h: innerHeight, ref: document.referrer.slice(0, 60) });
+
+  /* clicks + rage + dead */
+  var recent = [];
+  document.addEventListener('click', function (e) {
+    var now = Date.now();
+    var interactive = e.target.closest('button,a,input,select,textarea,label,[role="button"],summary,[contenteditable]');
+    var target = interactive || e.target;
+    log('click', { el: sel(target), x: e.clientX, y: e.clientY });
+
+    recent = recent.filter(function (c) { return now - c.t < 800 && Math.hypot(c.x - e.clientX, c.y - e.clientY) < 30; });
+    recent.push({ t: now, x: e.clientX, y: e.clientY });
+    if (recent.length >= 3) {
+      log('rage', { el: sel(target), x: e.clientX, y: e.clientY, n: recent.length });
+      recent = [];
+      nudge(sel(target));
+    }
+    if (!interactive) {
+      var before = document.body.innerHTML.length;
+      setTimeout(function () {
+        if (Math.abs(document.body.innerHTML.length - before) < 3) log('deadclick', { el: sel(e.target) });
+      }, 600);
+    }
+  }, true);
+
+  window.addEventListener('error', function (e) {
+    log('jserror', { msg: String(e.message || e).slice(0, 140) });
+  });
+
+  /* public API: PFB.action('compress_done', {kb: 120}) */
+  window.PFB = {
+    action: function (name, data) { var d = data || {}; d.name = name; log('action', d); },
+    log: log
+  };
+
+  /* prefilled GitHub issue = feedback channel (works on any device, no backend) */
+  function openIssue(title) {
+    var lines = buf.slice(-25).map(function (e) { return JSON.stringify(e); }).join('\n');
+    var body = 'What were you trying to do?\n\n(write here)\n\n---\nAuto-diagnostics (recent events):\n```\n' + lines + '\n```';
+    var url = 'https://github.com/' + REPO + '/issues/new?title=' +
+      encodeURIComponent('[feedback] ' + title) + '&body=' + encodeURIComponent(body).slice(0, 6000);
+    window.open(url, '_blank');
+  }
+
+  /* rage nudge bar */
+  var nudged = false;
+  function nudge(el) {
+    if (nudged) return; nudged = true;
+    log('nudge_shown', { el: el });
+    var bar = document.createElement('div');
+    bar.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:#1a2235;color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;z-index:99999;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:92vw';
+    bar.innerHTML = 'Something not working there? <button style="background:#7c3aed;color:#fff;border:0;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:13px">Tell us</button><button style="background:none;border:0;color:#9aa3b8;cursor:pointer;font-size:13px">Dismiss</button>';
+    var btns = bar.querySelectorAll('button');
+    btns[0].onclick = function () { log('nudge_report', { el: el }); openIssue('Stuck on: ' + el); bar.remove(); };
+    btns[1].onclick = function () { log('nudge_dismiss', { el: el }); bar.remove(); };
+    document.body.appendChild(bar);
+    setTimeout(function () { if (bar.parentNode) bar.remove(); }, 15000);
+  }
+
+  /* floating feedback button */
+  var fb = document.createElement('button');
+  fb.textContent = '💬 Feedback';
+  fb.setAttribute('aria-label', 'Send feedback');
+  fb.style.cssText = 'position:fixed;right:14px;bottom:14px;z-index:99998;background:#fff;border:1px solid #dee4f0;border-radius:99px;padding:8px 14px;font-size:13px;cursor:pointer;box-shadow:0 4px 14px rgba(20,30,60,.12);color:#1a2235';
+  fb.onclick = function () { log('feedback_open', {}); openIssue('User feedback'); };
+  document.body.appendChild(fb);
+
+  /* ?debug=1 owner dashboard */
+  if (/[?&]debug=1/.test(location.search)) {
+    var agg = { pageview: 0, click: {}, rage: {}, deadclick: {}, jserror: {}, action: {} };
+    buf.forEach(function (e) {
+      if (e.type === 'pageview') agg.pageview++;
+      else if (e.type === 'click') agg.click[e.el] = (agg.click[e.el] || 0) + 1;
+      else if (e.type === 'rage') agg.rage[e.el] = (agg.rage[e.el] || 0) + 1;
+      else if (e.type === 'deadclick') agg.deadclick[e.el] = (agg.deadclick[e.el] || 0) + 1;
+      else if (e.type === 'jserror') agg.jserror[e.msg] = (agg.jserror[e.msg] || 0) + 1;
+      else if (e.type === 'action') agg.action[e.name] = (agg.action[e.name] || 0) + 1;
+    });
+    function rows(obj, color) {
+      return Object.keys(obj).sort(function (a, b) { return obj[b] - obj[a]; }).slice(0, 12)
+        .map(function (k) { return '<tr><td style="padding:3px 8px;color:' + (color || '#1a2235') + '">' + k.replace(/</g, '&lt;') + '</td><td style="padding:3px 8px;text-align:right;font-weight:700">' + obj[k] + '</td></tr>'; }).join('') || '<tr><td style="padding:3px 8px;color:#9aa3b8">none</td></tr>';
+    }
+    var panel = document.createElement('div');
+    panel.style.cssText = 'position:fixed;top:10px;right:10px;width:340px;max-height:86vh;overflow:auto;background:#fff;border:1px solid #dee4f0;border-radius:14px;box-shadow:0 12px 40px rgba(20,30,60,.2);z-index:100000;font-size:12px;padding:14px;color:#1a2235;font-family:ui-monospace,Menlo,monospace';
+    panel.innerHTML =
+      '<div style="font-weight:800;font-size:14px;margin-bottom:8px">PulseFB — this device (' + buf.length + ' events, ' + agg.pageview + ' visits)</div>' +
+      '<div style="font-weight:700;color:#dc2626;margin-top:8px">🔥 Rage clicks (problem spots)</div><table>' + rows(agg.rage, '#dc2626') + '</table>' +
+      '<div style="font-weight:700;color:#d97706;margin-top:8px">💀 Dead clicks</div><table>' + rows(agg.deadclick, '#d97706') + '</table>' +
+      '<div style="font-weight:700;margin-top:8px">🖱 Top clicked</div><table>' + rows(agg.click) + '</table>' +
+      '<div style="font-weight:700;margin-top:8px">⚡ Key actions</div><table>' + rows(agg.action, '#16a34a') + '</table>' +
+      '<div style="font-weight:700;color:#dc2626;margin-top:8px">🐞 JS errors</div><table>' + rows(agg.jserror, '#dc2626') + '</table>' +
+      '<div style="margin-top:10px;display:flex;gap:8px">' +
+      '<button id="pfbExp" style="flex:1;padding:6px;border:1px solid #dee4f0;border-radius:8px;background:#f5f7fb;cursor:pointer">Export JSON</button>' +
+      '<button id="pfbClr" style="flex:1;padding:6px;border:1px solid #dee4f0;border-radius:8px;background:#f5f7fb;cursor:pointer">Clear</button></div>';
+    document.body.appendChild(panel);
+    panel.querySelector('#pfbExp').onclick = function () {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(buf, null, 1)], { type: 'application/json' }));
+      a.download = 'pulsefb-events.json'; a.click();
+    };
+    panel.querySelector('#pfbClr').onclick = function () { localStorage.removeItem(KEY); location.reload(); };
+  }
+})();
+
+</script>
+</body>
+</html>
