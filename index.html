@@ -101,7 +101,7 @@
   </div>
 </div>
 
-<div class="content">
+<section class="content">
   <h2>Why a browser-only JSON formatter?</h2>
   <p style="color:var(--muted);font-size:15px;line-height:1.7">JSON often contains API keys, customer records, or internal config. Pasting it into a tool that sends it to a server is a real leak risk. JSONPretty parses, formats, validates and minifies entirely with JavaScript running on your machine — open your network tab and verify: zero requests.</p>
   <h2>FAQ</h2>
@@ -110,7 +110,7 @@
   <details><summary>What is the difference between Format and Minify?</summary><p>Format (also called beautify or pretty-print) adds indentation and line breaks so humans can read the JSON. Minify removes all unnecessary whitespace to make the file as small as possible for production use.</p></details>
   <details><summary>Can it handle large JSON files?</summary><p>Yes. Files of a few megabytes format in well under a second because processing only happens when you click a button — there is no laggy live preview. Very large outputs skip syntax coloring to stay fast.</p></details>
   <details><summary>Does JSON allow comments or trailing commas?</summary><p>No. Standard JSON (RFC 8259) forbids comments, trailing commas, and single quotes. Those are the three most common reasons valid-looking JSON fails to parse — this validator flags each of them with a specific hint.</p></details>
-</div>
+</section>
 
 <footer>
   <div class="inner">
@@ -185,10 +185,10 @@
     var i = line - 1, j = col - 2;
     while (i >= 0) {
       var ln = lines[i];
-      if (j < 0) j = (--i >= 0) ? lines[i].length - 1 : -1;
       while (j >= 0 && /\s/.test(ln[j])) j--;
-      if (i >= 0 && j >= 0) return lines[i][j];
-      if (i >= 0) { j = -1; continue; }
+      if (j >= 0) return ln[j];
+      i--;
+      j = i >= 0 ? lines[i].length - 1 : -1;
     }
     return '';
   }
